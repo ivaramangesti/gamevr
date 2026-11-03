@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Laboratorium Kimia Ceria 3D & WebVR - SMA Kelas X</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #264653;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+    #webgl-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+    /* HUD Elements */
+    #hud-top-bar {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hud-chip {
+      background: rgba(253, 246, 226, 0.94);
+      border: 2px solid #2A9D8F;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #264653;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      pointer-events: auto;
+    }
+    .hud-actions {
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+    .hud-btn {
+      background: #2A9D8F;
+      color: #FFFFFF;
+      border: 2px solid #264653;
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+    .hud-btn:hover {
+      background: #E9C46A;
+      color: #264653;
+      transform: translateY(-2px);
+    }
+    .hud-btn:active {
+      transform: translateY(1px);
+    }
+    .hud-btn.vr-btn {
+      background: #E76F51;
+    }
+    .hud-btn.vr-btn:hover {
+      background: #FFD166;
+    }
+
+    /* Start Overlay Modal */
+    #start-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(38, 70, 83, 0.85);
+      backdrop-filter: blur(6px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      transition: opacity 0.4s ease;
+      padding: 20px;
+    }
+    .modal-card {
+      background: #FDF6E2;
+      border: 4px solid #E9C46A;
+      border-radius: 24px;
+      max-width: 620px;
+      width: 100%;
+      padding: 32px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.3);
+      text-align: center;
+      color: #264653;
+    }
+    .modal-cover {
+      width: 100%;
+      max-height: 190px;
+      object-fit: cover;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      border: 3px solid #2A9D8F;
+    }
+    .modal-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #264653;
+      margin-bottom: 6px;
+    }
+    .modal-subtitle {
+      font-size: 15px;
+      color: #2A9D8F;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .learning-objectives {
+      background: rgba(42, 157, 143, 0.1);
+      border-radius: 12px;
+      padding: 14px 18px;
+      text-align: left;
+      margin-bottom: 20px;
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+    .learning-objectives h4 {
+      color: #E76F51;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .learning-objectives li {
+      margin-left: 18px;
+      margin-bottom: 4px;
+    }
+    .instructions-hint {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 20px;
+      background: #FFF;
+      padding: 8px;
+      border-radius: 8px;
+    }
+    .start-btn {
+      background: #E76F51;
+      color: #FFF;
+      border: 3px solid #264653;
+      border-radius: 16px;
+      padding: 14px 36px;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(231, 111, 81, 0.4);
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    .start-btn:hover {
+      background: #FFD166;
+      color: #264653;
+      transform: translateY(-2px);
+    }
+    #vr-status {
+      font-size: 12px;
+      margin-top: 10px;
+      color: #2A9D8F;
+      font-weight: 600;
+    }
+  </style>
+  <script type="module" crossorigin src="./assets/index-BMb9KyVJ.js"></script>
+</head>
+<body>
+  <div id="hud-top-bar">
+    <div class="hud-chip">🧪 Lab Kimia SMA X &bull; RPG Diorama</div>
+    <div class="hud-actions">
+      <button id="audio-toggle" class="hud-btn" aria-label="Audio switch">🔊 Audio: Nyala</button>
+      <button id="vr-button" class="hud-btn vr-btn" aria-label="WebXR VR mode">🥽 Mode WebXR VR</button>
+    </div>
+  </div>
+
+  <div id="start-overlay">
+    <div class="modal-card">
+      <img src="./assets/cover.png" alt="Cover Diorama Laboratorium Kimia" class="modal-cover" />
+      <h1 class="modal-title">Laboratorium Kimia Ceria 3D</h1>
+      <div class="modal-subtitle">Eksplorasi Edukatif Berbasis WebVR &bull; Kelas X SMA</div>
+
+      <div class="learning-objectives">
+        <h4>🎯 3 Tujuan Pembelajaran (Capaian Pembelajaran):</h4>
+        <ul>
+          <li><strong>TP 1:</strong> Memilih & memahami fungsi alat gelas ukur presisi (pipet gondok, buret, labu takar) vs wadah reaksi.</li>
+          <li><strong>TP 2:</strong> Mengidentifikasi piktogram simbol bahaya bahan kimia B3 dan prosedur penanganannya.</li>
+          <li><strong>TP 3:</strong> Menerapkan standar keselamatan kerja K3 (APD) dan respon darurat tumpahan reagen kimia (spill kit).</li>
+        </ul>
+      </div>
+
+      <div class="instructions-hint">
+        💡 <strong>Cara Bermain:</strong> Ketuk lantai tanah di mana saja untuk meluncur (~3,6 m/s). Dekati & ketuk NPC untuk berdiskusi materi serta menuntaskan uji laboratorium!
+      </div>
+
+      <button id="start-btn" class="start-btn">🚀 Mulai Petualangan Lab</button>
+      <div id="vr-status">Memeriksa dukungan WebXR VR...</div>
+    </div>
+  </div>
+
+  <canvas id="webgl-canvas"></canvas>
+
+</body>
+</html>
